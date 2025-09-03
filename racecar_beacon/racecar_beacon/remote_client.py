@@ -3,18 +3,16 @@
 import socket
 from struct import unpack
 
-"""
-NOTES:
-
-- This process MUST listen to a different port than the PositionBroadcast client;
-- A socket MUST be closed BEFORE exiting the process.
-"""
-
+HOST = str("172.20.10.2")
+PORT = int(65432)
 
 def main():
-    # TODO: Implement the RemoteRequest client here.
-    pass
-
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    s.connect((HOST, PORT))
+    s.sendall(b"Hello, server!").encode('utf-8')
+    data = s.recv(1024)
+    print(f"Received {data!r}")
+    s.close()
 
 if __name__ == "__main__":
     main()
