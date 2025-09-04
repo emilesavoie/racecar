@@ -5,18 +5,27 @@ from datetime import datetime
 
 PORT = 65431
 MAX_BYTES = 1024
+BIND_ADDR = ""
 
+# This specifies the packet structure for python
 STRUCT_FMT  = "!4sHBBfffI"
+"""
+Struct FMT
+4s -> 4 byte string (magic = "POS1")
+H  -> uint16 (vehicle_id)
+B  -> uint8 (flags)
+B  -> uint8 (flags)
+fff -> float32 (x, y, yaw)
+I  -> uint32 (Sequence number)
+"""
 STRUCT_SIZE = calcsize(STRUCT_FMT)
 
 def main():
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     try:
         sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        sock.bind((BIND_ADDR, PORT))
 
-        sock.bind(("", PORT))
-
-        print(f"Listening on 0.0.0.0:{PORT}")
         while True:
             data, addr = sock.recvfrom(MAX_BYTES)
             src_ip, src_port = addr
