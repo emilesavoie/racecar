@@ -1,42 +1,33 @@
 #!/usr/bin/env python3
-
 import socket
 from struct import unpack, calcsize
+from datetime import datetime
 
-"""
-NOTES:
+PORT = 65431
+MAX_BYTES = 1024
 
-- This process MUST listen to a different port than the RemoteRequest client;
-- A socket MUST be closed BEFORE exiting the process.
-"""
-
-PORT = int(65432)
-BIND_ADDR = ""
-MAX_BYTES = 2048
-
-# Struct format:
 STRUCT_FMT  = "!4sHBBfffI"
 STRUCT_SIZE = calcsize(STRUCT_FMT)
 
-
 def main():
-    
-    # UDP client socket
-    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-
+    sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     try:
         sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        sock.bind((BIND_ADDR, PORT))
 
+        sock.bind(("", PORT))
+
+        print(f"Listening on 0.0.0.0:{PORT}")
         while True:
             data, addr = sock.recvfrom(MAX_BYTES)
             src_ip, src_port = addr
+            ts = datetime.now().strftime("%H:%M:%S")
 
-            if len(data) == STRUCT_SIZE:
-                continue
+            if len(data) >= STRUCT_SIZE:
+                _magic, _veh_id, _flags, _res, x, y, _yaw, _seq = unpack(STRUCT_FMT, data[:STRUCT_SIZE])
+                print(f"{ts} {src_ip}:{src_port}  x={x:.3f}  y={y:.3f}")
+            else:
+                print(f"{ts} {src_ip}:{src_port}  {len(data)}B (too short)")
 
-            unpacked_data = unpack(STRUCT_FMT, data)
-            print(f"Received {unpacked_data} from {src_ip}:{src_port}")
     except KeyboardInterrupt:
         pass
     finally:
