@@ -33,9 +33,8 @@ class ROSMonitor(Node):
             "pos_broadcast_port", 65431
         ).value
 
-        self.remote_request_t = threading.Thread(target=self.remote_request_loop)
+        # self.remote_request_t = threading.Thread(target=self.remote_request_loop)
 
-        # TODO: Add your subscription(s) here. DONE
         self.odom_sub = self.create_subscription(
             Odometry, "/odometry/filtered", self.odom_callback, 10
         )
@@ -43,7 +42,9 @@ class ROSMonitor(Node):
             LaserScan, "/scan", self.scan_callback, 10
         )
 
-        self.remote_request_t.start()
+        self.timer = self.create_timer(1.0, self.PositionBroadcast)
+
+        # self.remote_request_t.start()
 
         self.get_logger().info(f"{self.get_name()} started.")
 
@@ -58,38 +59,32 @@ class ROSMonitor(Node):
     def scan_callback(self, msg: LaserScan) -> None:
         pass
 
-    def remote_request_loop(self):
-        socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-
-        try:
-            socket.bind((self.host, self.remote_request_port))
-            socket.listen(1)
-            self.srv_sock  = socket
-        except:
-
-            return
-        while rclpy.ok():
-            pass
+    # def remote_request_loop(self):
+    #     s= socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    #     try:
+    #         s.bind((self.host, self.remote_request_port))
+    #         s.listen(1)
+    #         self.srv_sock  = s
+    #     except:
+    #         return
+    #     while rclpy.ok():
+    #         pass
 
     # TODO: Implement the PositionBroadcast service here.
     # NOTE: It is recommended to initializae your socket locally.
     def PositionBroadcast(self):
         s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         s.bind(self.broadcast, self.position_broad_port)
-        create_timer(1.0, send_position(self,s))
+        # create_timer(1.0, send_position(self,s))
 
-
-
-        
-    def send_position(self, socket):
+    def send_position(self, s):
         data = pack("Ifff", self.id, *self.position)
-        socket.sendto(data, (self.broadcast, self.position_broad_port))
-        socket.close()
-        
+        s.sendto(data, (self.broadcast, self.position_broad_port))
+        s.close()
+
     def shutdown(self):
         """Gracefully shutdown the threads BEFORE terminating the node."""
         self.remote_request_t.join()
-
 
 def main(args=None):
     try:
