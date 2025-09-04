@@ -35,22 +35,57 @@ class ROSMonitor(Node):
 
         self.remote_request_t = threading.Thread(target=self.remote_request_loop)
 
-        # TODO: Add your subscription(s) here.
+        # TODO: Add your subscription(s) here. DONE
+        self.odom_sub = self.create_subscription(
+            Odometry, "/odometry/filtered", self.odom_callback, 10
+        )
+        self.scan_sub = self.create_subscription(
+            LaserScan, "/scan", self.scan_callback, 10
+        )
 
         self.remote_request_t.start()
 
         self.get_logger().info(f"{self.get_name()} started.")
 
-    def remote_request_loop(self):
-        # NOTE: It is recommended to initialize your socket here.
+        self.PositionBroadcast()
 
-        # TODO: Implement the RemoteRequest service here.
+    def odom_callback(self, msg: Odometry) -> None:
+        x = msg.pose.pose.position.x
+        y = msg.pose.pose.position.y
+        yaw = yaw_from_quaternion(msg.pose.pose.orientation)
+        self.position = (x, y, yaw)
+
+    def scan_callback(self, msg: LaserScan) -> None:
+        pass
+
+    def remote_request_loop(self):
+        socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
+        try:
+            socket.bind((self.host, self.remote_request_port))
+            socket.listen(1)
+            self.srv_sock  = socket
+        except:
+
+            return
         while rclpy.ok():
             pass
 
     # TODO: Implement the PositionBroadcast service here.
     # NOTE: It is recommended to initializae your socket locally.
+    def PositionBroadcast(self):
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        s.bind(self.broadcast, self.position_broad_port)
+        create_timer(1.0, send_position(self,s))
 
+
+
+        
+    def send_position(self, socket):
+        data = pack("Ifff", self.id, *self.position)
+        socket.sendto(data, (self.broadcast, self.position_broad_port))
+        socket.close()
+        
     def shutdown(self):
         """Gracefully shutdown the threads BEFORE terminating the node."""
         self.remote_request_t.join()
