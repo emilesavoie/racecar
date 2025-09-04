@@ -59,11 +59,11 @@ class ROSMonitor(Node):
         pass
 
     def remote_request_loop(self):
-        socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
         try:
-            socket.bind((self.host, self.remote_request_port))
-            socket.listen(1)
+            s.bind((self.host, self.remote_request_port))
+            s.listen(1)
             self.srv_sock  = socket
         except:
 
@@ -75,8 +75,8 @@ class ROSMonitor(Node):
     # NOTE: It is recommended to initializae your socket locally.
     def PositionBroadcast(self):
         s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        s.bind(self.broadcast, self.position_broad_port)
-        create_timer(1.0, send_position(self,s))
+        s.bind((self.broadcast, self.position_broad_port))
+        self.create_timer(1.0, self.send_position(s))
 
 
 
