@@ -24,14 +24,17 @@ class ROSMonitor(Node):
         self.obstacle_detected = bool(False)
 
         # Socket parameters
-        self.host = self.declare_parameter("host", "127.0.0.1").value
+        self.host = self.declare_parameter("host", "172.20.10.4").value
         self.remote_request_port = self.declare_parameter(
             "remote_request_port", 65432
         ).value
-        self.broadcast = self.declare_parameter("broadcast", "127.0.0.255").value
+        self.broadcast = self.declare_parameter("broadcast", "172.20.10.15").value
         self.position_broad_port = self.declare_parameter(
             "pos_broadcast_port", 65431
         ).value
+
+        self.broadcast_socket = None
+        self.setup_broadcast_socket()
 
         # self.remote_request_t = threading.Thread(target=self.remote_request_loop)
 
@@ -48,7 +51,16 @@ class ROSMonitor(Node):
 
         self.get_logger().info(f"{self.get_name()} started.")
 
-        self.PositionBroadcast()
+    def setup_broadcast_socket(self):
+        """Initialize the broadcast socket"""
+        try:
+            self.broadcast_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+            # Enable broadcast
+            self.broadcast_socket.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
+            self.get_logger().info("Broadcast socket initialized successfully")
+        except Exception as e:
+            self.get_logger().error(f"Failed to initialize broadcast socket: {e}")
+            self.broadcast_socket = None
 
     def odom_callback(self, msg: Odometry) -> None:
         x = msg.pose.pose.position.x
@@ -70,27 +82,32 @@ class ROSMonitor(Node):
     #     while rclpy.ok():
     #         pass
 
-    # TODO: Implement the PositionBroadcast service here.
-    # NOTE: It is recommended to initializae your socket locally.
     def PositionBroadcast(self):
-        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        s.bind(self.broadcast, self.position_broad_port)
-        # create_timer(1.0, send_position(self,s))
-
-    def send_position(self, s):
-        data = pack("Ifff", self.id, *self.position)
-        s.sendto(data, (self.broadcast, self.position_broad_port))
-        s.close()
+        if self.broadcast_socket is None:
+            self.get_logger().warn("Broadcast socket not available")
+            return
+        try:
+            data = pack("Ifff", self.id, *self.position)
+            self.broadcast_socket.sendto(data, (self.broadcast, self.position_broad_port))
+            self.get_logger().debug(f"Broadcasted position: {self.position}")
+        except Exception as e:
+            self.get_logger().error(f"Failed to broadcast position: {e}")
 
     def shutdown(self):
-        """Gracefully shutdown the threads BEFORE terminating the node."""
-        self.remote_request_t.join()
+        """Gracefully shutdown the threads and sockets BEFORE terminating the node."""
+        if self.broadcast_socket:
+            self.broadcast_socket.close()
+        
+        # Uncomment when you implement remote_request_t
+        # if hasattr(self, 'remote_request_t'):
+        #     self.remote_request_t.join()
 
 def main(args=None):
     try:
         rclpy.init(args=args)
         node = ROSMonitor()
-        rclpy.get_default_context().on_shutdown(node.shutdown())
+        # Fix: on_shutdown expects a callable, not the result of calling shutdown()
+        rclpy.get_default_context().on_shutdown(node.shutdown)
         rclpy.spin(node)
     except (KeyboardInterrupt, ExternalShutdownException):
         pass
