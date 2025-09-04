@@ -71,7 +71,19 @@ class ROSMonitor(Node):
 
     # TODO: Implement the PositionBroadcast service here.
     # NOTE: It is recommended to initializae your socket locally.
+    def PositionBroadcast(self)
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        s.bind(self.broadcast, self.position_broad_port)
+        create_timer(1.0, send_position(self,s))
 
+
+
+        
+    def send_position(self, socket):
+        data = pack("Ifff", self.id, *self.position)
+        socket.sendto(data, (self.broadcast, self.position_broad_port))
+        socket.close()
+        
     def shutdown(self):
         """Gracefully shutdown the threads BEFORE terminating the node."""
         self.remote_request_t.join()
