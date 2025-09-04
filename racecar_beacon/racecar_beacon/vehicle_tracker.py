@@ -8,13 +8,11 @@ MAX_BYTES = 1024
 BIND_ADDR = ""
 
 # This specifies the packet structure
-STRUCT_FMT  = "!4sHfffI"
+STRUCT_FMT  = "!Ifff"
 """
 Struct FMT
-4s -> 4 byte string (magic = "POS1")
-H  -> uint16 (vehicle_id)
+I  -> uint32 (vehicle_id)
 fff -> float32 (x, y, yaw)
-I  -> uint32 (Sequence number)
 """
 
 STRUCT_SIZE = calcsize(STRUCT_FMT)
@@ -31,8 +29,8 @@ def main():
             ts = datetime.now().strftime("%H:%M:%S")
 
             if len(data) >= STRUCT_SIZE:
-                _magic, _veh_id, _res, x, y, _yaw, _seq = unpack(STRUCT_FMT, data[:STRUCT_SIZE])
-                print(f"{ts} {src_ip}:{src_port}  x={x:.3f}  y={y:.3f}, seq={_seq}  veh_id={_veh_id}  {len(data)}B")
+                _veh_id, x, y, _yaw = unpack(STRUCT_FMT, data[:STRUCT_SIZE])
+                print(f"{ts} {src_ip}:{src_port}  x={x:.3f}  y={y:.3f} theta={_yaw:.3f}  veh_id={_veh_id}  {len(data)}B")
             else:
                 print(f"{ts} {src_ip}:{src_port}  {len(data)}B (too short)")
 
