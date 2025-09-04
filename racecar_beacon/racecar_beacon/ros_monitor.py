@@ -47,6 +47,8 @@ class ROSMonitor(Node):
 
         self.get_logger().info(f"{self.get_name()} started.")
 
+        self.PositionBroadcast()
+
     def odom_callback(self, msg: Odometry) -> None:
         x = msg.pose.pose.position.x
         y = msg.pose.pose.position.y
@@ -71,7 +73,7 @@ class ROSMonitor(Node):
 
     # TODO: Implement the PositionBroadcast service here.
     # NOTE: It is recommended to initializae your socket locally.
-    def PositionBroadcast(self)
+    def PositionBroadcast(self):
         s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         s.bind(self.broadcast, self.position_broad_port)
         create_timer(1.0, send_position(self,s))
