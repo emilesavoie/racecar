@@ -35,7 +35,13 @@ class ROSMonitor(Node):
 
         self.remote_request_t = threading.Thread(target=self.remote_request_loop)
 
-        # TODO: Add your subscription(s) here.
+        # TODO: Add your subscription(s) here. DONE
+        self.odom_sub = self.create_subscription(
+            Odometry, "/odometry/filtered", self.odom_callback, 10
+        )
+        self.scan_sub = self.create_subscription(
+            LaserScan, "/scan", self.scan_callback, 10
+        )
 
         self.remote_request_t.start()
 
@@ -43,8 +49,14 @@ class ROSMonitor(Node):
 
     def remote_request_loop(self):
         # NOTE: It is recommended to initialize your socket here.
+        socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
-        # TODO: Implement the RemoteRequest service here.
+        try:
+            socket.bind((self.host, self.remote_request_port))
+            socket.listen()
+        except:
+            
+            return
         while rclpy.ok():
             pass
 
