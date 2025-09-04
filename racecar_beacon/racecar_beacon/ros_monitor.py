@@ -47,15 +47,24 @@ class ROSMonitor(Node):
 
         self.get_logger().info(f"{self.get_name()} started.")
 
+    def odom_callback(self, msg: Odometry) -> None:
+        x = msg.pose.pose.position.x
+        y = msg.pose.pose.position.y
+        yaw = yaw_from_quaternion(msg.pose.pose.orientation)
+        self.position = (x, y, yaw)
+
+    def scan_callback(self, msg: LaserScan) -> None:
+        pass
+
     def remote_request_loop(self):
-        # NOTE: It is recommended to initialize your socket here.
         socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
         try:
             socket.bind((self.host, self.remote_request_port))
-            socket.listen()
+            socket.listen(1)
+            self.srv_sock  = socket
         except:
-            
+
             return
         while rclpy.ok():
             pass
