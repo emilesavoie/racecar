@@ -8,7 +8,7 @@ MAX_BYTES = 1024
 BIND_ADDR = ""
 
 # This specifies the packet structure
-STRUCT_FMT  = "!fffI"
+STRUCT_FMT  = "fffI"
 """
 Struct FMT
 fff -> float32 (x, y, yaw)
