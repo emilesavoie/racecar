@@ -18,8 +18,7 @@ class ROSMonitor(Node):
     def __init__(self):
         super().__init__("ros_monitor")
 
-        # Robot state
-        self.id = int(0xFFFF)
+        self.id = int(17220104 & 0xFFFFFFFF)
         self.position = tuple([float(0), float(0), float(0)])
         self.obstacle_detected = bool(False)
 
@@ -66,6 +65,9 @@ class ROSMonitor(Node):
         x = msg.pose.pose.position.x
         y = msg.pose.pose.position.y
         yaw = yaw_from_quaternion(msg.pose.pose.orientation)
+
+        self.get_logger().info(f"Odometry received: x={x}, y={y}, yaw={yaw}")
+
         self.position = (x, y, yaw)
 
     def scan_callback(self, msg: LaserScan) -> None:
@@ -87,7 +89,7 @@ class ROSMonitor(Node):
             self.get_logger().warn("Broadcast socket not available")
             return
         try:
-            data = pack("Ifff", self.id, *self.position)
+            data = pack("fffI", *self.position, self.id)
             self.broadcast_socket.sendto(data, (self.broadcast, self.position_broad_port))
             self.get_logger().debug(f"Broadcasted position: {self.position}")
         except Exception as e:
