@@ -21,16 +21,16 @@ class ROSMonitor(Node):
     def __init__(self):
         super().__init__("ros_monitor")
 
-        self.id = int(17220104 & 0xFFFFFFFF)
+        self.id = int(10011 & 0xFFFFFFFF)
         self.position = tuple([float(0), float(0), float(0)])
         self.obstacle_detected = bool(False)
 
         # Socket parameters
-        self.host = self.declare_parameter("host", "172.20.10.4").value
+        self.host = self.declare_parameter("host", "10.0.1.1").value
         self.remote_request_port = self.declare_parameter(
             "remote_request_port", 65432
         ).value
-        self.broadcast = self.declare_parameter("broadcast", "172.20.10.15").value
+        self.broadcast = self.declare_parameter("broadcast", "10.0.1.255").value
         self.position_broad_port = self.declare_parameter(
             "pos_broadcast_port", 65431
         ).value
