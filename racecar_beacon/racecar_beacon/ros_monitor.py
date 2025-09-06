@@ -21,7 +21,7 @@ class ROSMonitor(Node):
     def __init__(self):
         super().__init__("ros_monitor")
 
-        self.id = int(10011 & 0xFFFFFFFF)
+        self.id = int(17220104 & 0xFFFFFFFF)
         self.position = tuple([float(0), float(0), float(0)])
         self.obstacle_detected = bool(False)
 
@@ -83,7 +83,7 @@ class ROSMonitor(Node):
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         sock.bind(("", 65432))
-        sock.listen(5)
+        sock.listen(1)
         print("Waiting for connections...")
 
         try:
