@@ -3,7 +3,7 @@
 import socket
 from struct import unpack
 
-HOST = str("10.0.1.1")
+HOST = str("172.20.10.4")
 PORT = int(65432)
 MAX_BYTES = 1024
 
