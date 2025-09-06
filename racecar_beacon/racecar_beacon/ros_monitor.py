@@ -57,7 +57,6 @@ class ROSMonitor(Node):
         """Initialize the broadcast socket"""
         try:
             self.broadcast_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
-            # Enable broadcast
             self.broadcast_socket.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
             self.get_logger().info("Broadcast socket initialized successfully")
         except Exception as e:
@@ -68,8 +67,6 @@ class ROSMonitor(Node):
         x = msg.pose.pose.position.x
         y = msg.pose.pose.position.y
         yaw = yaw_from_quaternion(msg.pose.pose.orientation)
-
-        #self.get_logger().info(f"Odometry received: x={x}, y={y}, yaw={yaw}")
 
         self.position = (x, y, yaw)
 
@@ -105,22 +102,28 @@ class ROSMonitor(Node):
                             print(f"{ts} Received: {ascii_chars}")
 
                             if ascii_chars == "RPOS":
-                                data_to_send = pack("fff", *self.position)
-                                print(f"Sending position: {self.position}")
+                                if self.position is not None:
+                                    data_to_send = pack("fff", *self.position)
+                                    print(f"Sending position: {self.position}")
+                                else:
+                                    print("No valid position data available")
 
                             elif ascii_chars == "OBSF":
-                                if self.rayon < 1.0:
-                                    data_to_send = pack("I", 1)
-                                
+                                if self.rayon is not None:
+                                    if self.rayon < 1.0:
+                                        data_to_send = pack("I", 1)
+                                    else:
+                                        data_to_send = pack("I", 0)
+                                    print(f"Sending obstacle flag: {self.rayon < 1.0}")
                                 else:
-                                    data_to_send = pack("I", 0)
-                                
-                                print(f"Sending obstacle flag: {self.rayon < 1.0}")
+                                    print("No valid scan data available")
 
                             elif ascii_chars == "RBID":
-                                data_to_send = pack("I", self.id)
-                                print(f"Sending robot ID: {self.id}")
-                            
+                                if self.id is not None:
+                                    data_to_send = pack("I", self.id)
+                                    print(f"Sending robot ID: {self.id}")
+                                else:
+                                    print("No valid robot ID available")
                             conn.sendall(data_to_send)
 
                         else:
@@ -155,16 +158,11 @@ class ROSMonitor(Node):
         """Gracefully shutdown the threads and sockets BEFORE terminating the node."""
         if self.broadcast_socket:
             self.broadcast_socket.close()
-        
-        # Uncomment when you implement remote_request_t
-        # if hasattr(self, 'remote_request_t'):
-        #     self.remote_request_t.join()
 
 def main(args=None):
     try:
         rclpy.init(args=args)
         node = ROSMonitor()
-        # Fix: on_shutdown expects a callable, not the result of calling shutdown()
         rclpy.get_default_context().on_shutdown(node.shutdown)
         rclpy.spin(node)
     except (KeyboardInterrupt, ExternalShutdownException):

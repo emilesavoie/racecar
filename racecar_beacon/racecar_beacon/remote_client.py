@@ -10,7 +10,7 @@ MAX_BYTES = 1024
 def main():
     while True:
         cmd = input("Enter command (RPOS/OBSF/RBID): ").strip().upper()
-        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM) # TCP
 
         try:
             s.connect((HOST, PORT))
@@ -24,6 +24,8 @@ def main():
                         msg = unpack('I',data)[0]
                     elif cmd == "RBID":
                         msg = unpack('I',data)[0]
+                    else:
+                        msg = "Enter valid command"
                     print(msg)
                     break
             

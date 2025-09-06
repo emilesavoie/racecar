@@ -18,7 +18,7 @@ I  -> uint32 (vehicle_id)
 STRUCT_SIZE = calcsize(STRUCT_FMT)
 
 def main():
-    sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
+    sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP) # UDP
     try:
         sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         sock.bind((BIND_ADDR, PORT))
