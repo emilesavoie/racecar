@@ -26,11 +26,11 @@ class ROSMonitor(Node):
         self.obstacle_detected = bool(False)
 
         # Socket parameters
-        self.host = self.declare_parameter("host", "172.20.10.4").value
+        self.host = self.declare_parameter("host", "10.0.1.1").value
         self.remote_request_port = self.declare_parameter(
             "remote_request_port", 65432
         ).value
-        self.broadcast = self.declare_parameter("broadcast", "172.20.10.15").value
+        self.broadcast = self.declare_parameter("broadcast", "10.0.1.255").value
         self.position_broad_port = self.declare_parameter(
             "pos_broadcast_port", 65431
         ).value
